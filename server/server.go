@@ -1,33 +1,30 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
-	"github.com/kaustubhbabar5/rr-lb/adapters/cache"
+	"github.com/kaustubhbabar5/rr-lb/checker"
 )
 
 type HTTPServer struct {
-	router *mux.Router
-	cache  *redis.Client
+	router        *mux.Router
+	cache         *redis.Client
+	checkerClient *checker.Client
 }
 
-func New() (*http.Server, error) {
+func New(cache *redis.Client, checkerClient *checker.Client) (*http.Server, error) {
 
 	router := mux.NewRouter()
 
 	//TODO remove magic string
-	cache, err := cache.New("0.0.0.0:6379", "")
-	if err != nil {
-		return nil, fmt.Errorf("redis.NewRedisCache: %w", err)
-	}
 
 	server := HTTPServer{
-		router: router,
-		cache:  cache,
+		router:        router,
+		cache:         cache,
+		checkerClient: checkerClient,
 	}
 
 	server.RegisterBalancer()

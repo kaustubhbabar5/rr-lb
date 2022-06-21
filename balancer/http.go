@@ -10,16 +10,14 @@ import (
 
 	"github.com/gorilla/mux"
 	chttp "github.com/kaustubhbabar5/rr-lb/pkg/http"
-	"github.com/kaustubhbabar5/rr-lb/stratergy/robin"
 )
 
 type Handler struct {
-	s              IService
-	balancingStrat robin.IService
+	s IService
 }
 
-func NewHandler(s IService, robinService robin.IService) *Handler {
-	return &Handler{s, robinService}
+func NewHandler(s IService) *Handler {
+	return &Handler{s}
 }
 
 func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +37,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.s.AddNode(request.Url)
+	err = h.s.AddServer(request.Url)
 	if err != nil {
 		chttp.JSON(w, http.StatusInternalServerError, map[string]any{"error": []string{err.Error()}})
 		return
@@ -48,7 +46,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Proxy(w http.ResponseWriter, r *http.Request) {
 
-	Url, err := h.balancingStrat.GetServer()
+	Url, err := h.s.GetServer()
 	if err != nil {
 		chttp.JSON(w, http.StatusInternalServerError, map[string]any{"error": []string{err.Error()}})
 		return

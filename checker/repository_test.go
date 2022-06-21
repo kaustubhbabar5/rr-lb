@@ -1,4 +1,4 @@
-package balancer
+package checker
 
 import (
 	"context"
@@ -15,9 +15,7 @@ type TestSuite struct {
 	suite.Suite
 	repo *repository
 
-	testUrl1 string
-	testUrl2 string
-	testUrl3 string
+	testUrl string
 }
 
 func TestRepository(t *testing.T) {
@@ -34,9 +32,7 @@ func (s *TestSuite) SetupSuite() {
 
 	s.repo = repo
 
-	s.testUrl1 = "https://www.google.com/"
-	s.testUrl2 = "https://www.facebook.com/"
-	s.testUrl3 = "https://www.amazon.com/"
+	s.testUrl = "https://www.google.com/"
 
 	//clean redis TODO: setup test redis server
 	s.repo.cache.FlushAll(context.Background())
@@ -45,25 +41,29 @@ func (s *TestSuite) SetupSuite() {
 
 func (s *TestSuite) BeforeTest(suiteName, testName string) {
 	switch testName {
-	case "TestGetServer":
-		s.repo.cache.RPush(context.Background(), constants.HEALTHY_SERVERS, s.testUrl1, s.testUrl2, s.testUrl3)
+	case "TestMarkReplicaUnhealthy":
+		s.repo.cache.LPush(context.Background(), constants.HEALTHY_SERVERS, s.testUrl)
+
 		// default:
 
 	}
 }
 
-// The TearDownTest method will be run after every test in the suite.
 func (s *TestSuite) TearDownTest() {
 	s.repo.cache.FlushAll(context.Background())
 }
 
-func (s *TestSuite) TestGetServer() {
-
-	url, err := s.repo.GetServer()
+func (s *TestSuite) TestMarkReplicaUnhealthy() {
+	err := s.repo.MarkReplicaUnhealthy(s.testUrl)
 	s.Nil(err)
-	s.Equal(s.testUrl1, url, "got different url")
 
-	res := s.repo.cache.LPos(context.Background(), constants.HEALTHY_SERVERS, s.testUrl1, redis.LPosArgs{})
+	res := s.repo.cache.LPos(context.Background(), constants.UNHEALTHY_SERVERS, s.testUrl, redis.LPosArgs{})
 	s.Nil(res.Err())
-	s.Equal(int64(2), res.Val(), "expected key at index 2 but got at: ", res.Val())
+	s.Equal(int64(0), res.Val(), "index of value different")
+
 }
+
+// //TODO
+// func (s *TestSuite) TestMarkReplicahealthy() {
+
+// }
