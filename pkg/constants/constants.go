@@ -1,0 +1,6 @@
+package constants
+
+const (
+	HEALTHY_SERVERS   = "HEALTHY_SERVERS"
+	UNHEALTHY_SERVERS = "UNHEALTHY_SERVERS"
+)
