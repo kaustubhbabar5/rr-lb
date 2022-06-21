@@ -2,8 +2,10 @@ package main
 
 import (
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/kaustubhbabar5/rr-lb/adapters/cache"
 	"github.com/kaustubhbabar5/rr-lb/checker"
 	"github.com/kaustubhbabar5/rr-lb/server"
@@ -11,12 +13,13 @@ import (
 )
 
 func main() {
-	//
+	godotenv.Load()
+
 	log.SetLevel(log.InfoLevel)
 
-	cache, err := cache.New("0.0.0.0:6379", "")
+	cache, err := cache.New(os.Getenv("REDIS_URL"), os.Getenv("REDIS_PASSWORD"))
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	httpClient := &http.Client{
@@ -29,13 +32,13 @@ func main() {
 	server, err := server.New(cache, checkerClient)
 	if err != nil {
 		//TODO handle error here
-		panic(err)
+		log.Fatalln(err)
 	}
 	log.Info("starting server")
 	err = server.ListenAndServe()
 	if err != nil {
 		//TODO handle error properly
-		panic(err)
+		log.Fatalln(err)
 	}
 	//TODO graceful shutdown on sigterm
 	// checkerClient.Done()

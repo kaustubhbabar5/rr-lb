@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -16,10 +17,7 @@ type HTTPServer struct {
 }
 
 func New(cache *redis.Client, checkerClient *checker.Client) (*http.Server, error) {
-
 	router := mux.NewRouter()
-
-	//TODO remove magic string
 
 	server := HTTPServer{
 		router:        router,
@@ -30,8 +28,7 @@ func New(cache *redis.Client, checkerClient *checker.Client) (*http.Server, erro
 	server.RegisterBalancer()
 
 	return &http.Server{
-		// TODO remove magic string
-		Addr:         "0.0.0.0:8080",
+		Addr:         os.Getenv("HOST") + os.Getenv("PORT"),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		Handler:      router,
