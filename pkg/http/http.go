@@ -11,6 +11,8 @@ func JSON(w http.ResponseWriter, statusCode int, body map[string]any) {
 	w.WriteHeader(statusCode)
 
 	//TODO handle error here
-	_ = json.NewEncoder(w).Encode(body)
+	if body != nil {
+		_ = json.NewEncoder(w).Encode(body)
+	}
 
 }

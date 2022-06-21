@@ -2,13 +2,14 @@ package balancer
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 
 	"github.com/gorilla/mux"
+	cerrors "github.com/kaustubhbabar5/rr-lb/pkg/errors"
 	chttp "github.com/kaustubhbabar5/rr-lb/pkg/http"
 )
 
@@ -46,13 +47,21 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Proxy(w http.ResponseWriter, r *http.Request) {
 
-	Url, err := h.s.GetServer()
+	sUrl, err := h.s.GetServer()
 	if err != nil {
+		var nfError *cerrors.NotFound
+
+		ok := errors.As(err, &nfError)
+		if ok {
+			chttp.JSON(w, http.StatusServiceUnavailable, nil)
+			return
+		}
+
 		chttp.JSON(w, http.StatusInternalServerError, map[string]any{"error": []string{err.Error()}})
 		return
 	}
 
-	serverUrl, err := url.Parse(Url)
+	serverUrl, err := url.Parse(sUrl)
 	if err != nil {
 		chttp.JSON(w, http.StatusInternalServerError, map[string]any{"error": []string{err.Error()}})
 		return
@@ -65,7 +74,6 @@ func (h *Handler) Proxy(w http.ResponseWriter, r *http.Request) {
 	r.Host = serverUrl.Host
 
 	r.URL.Path = mux.Vars(r)["rest"]
-	fmt.Println(r.URL.Path)
 	reverseProxy.ServeHTTP(w, r)
 
 }

@@ -9,7 +9,7 @@ import (
 
 func main() {
 	//
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
 
 	cache, err := cache.New("0.0.0.0:6379", "")
 	if err != nil {

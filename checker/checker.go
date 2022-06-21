@@ -26,7 +26,7 @@ func New(cache *redis.Client) *Client {
 
 func (c *Client) StartNewHealthCheck(ctx context.Context, url string, period, successThreshold int) {
 	c.wg.Add(1)
-	c.Check(ctx, url, 5, 3)
+	go c.Check(ctx, url, 5, 3)
 }
 
 func (c *Client) Check(ctx context.Context, url string, period, successThreshold int) {
