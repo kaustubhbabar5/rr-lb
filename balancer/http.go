@@ -40,6 +40,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	err = h.s.AddServer(request.Endpoint)
 	if err != nil {
+		//TODO: handle case differently when server is already registered
 		chttp.JSON(w, http.StatusInternalServerError, map[string]any{"error": []string{err.Error()}})
 		return
 	}

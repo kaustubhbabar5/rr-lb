@@ -27,6 +27,14 @@ Body
     {
         "endpoint": "https://www.amazon.com/"
     }
+Response
+    
+    Success
+        status code: 200
+    
+
+    Error
+        status code 400,500
     
     
 ## 2. proxy
@@ -42,5 +50,14 @@ Body
         "endpoint": "https://www.amazon.com/"
     }
 
+Response
+    
+    Success
+        status code: 200
+    
 
-Note: have to wait 
+    Error
+        status code 503 Service Unavailable
+    
+
+### - Note: have to wait 20 secs after registering server for initial health checks to get completed

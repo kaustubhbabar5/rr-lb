@@ -38,7 +38,7 @@ func main() {
 			log.Fatalln("unknown status code for:", address, string(resBody))
 		}
 	}
-	log.Println("waiting........")
+	log.Println("waiting 20 secs")
 	time.Sleep(20 * time.Second)
 	for {
 		res, err := http.Get("http://0.0.0.0:8080/proxy/")

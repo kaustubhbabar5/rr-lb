@@ -28,7 +28,7 @@ func New(cache *redis.Client, checkerClient *checker.Client) (*http.Server, erro
 	server.RegisterBalancer()
 
 	return &http.Server{
-		Addr:         os.Getenv("HOST") + os.Getenv("PORT"),
+		Addr:         os.Getenv("HOST") + ":" + os.Getenv("PORT"),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		Handler:      router,
