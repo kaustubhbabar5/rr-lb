@@ -41,14 +41,23 @@ func main() {
 	log.Println("waiting 20 secs")
 	time.Sleep(20 * time.Second)
 	for {
-		res, err := http.Get("http://0.0.0.0:8080/proxy/")
+		req, err := http.NewRequest("GET", "http://0.0.0.0:8080/proxy/", nil)
 		if err != nil {
 			log.Fatalln(err)
 		}
+
+		req.Header.Add("Content-Type", " application/json")
+
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
 		resBody, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		if res.StatusCode != 200 {
 			log.Fatalln("unknown status code from proxy:", res.StatusCode, string(resBody))
 		}

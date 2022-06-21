@@ -9,6 +9,9 @@ func (s *HTTPServer) RegisterBalancer() {
 	service := balancer.NewService(repo, s.checkerClient)
 
 	handler := balancer.NewHandler(service)
+
+	s.router.Use(s.Middleware)
+
 	s.router.HandleFunc("/health", handler.Health).Methods("GET")
 	s.router.HandleFunc("/url/register", handler.Register).Methods("POST")
 	s.router.HandleFunc("/proxy/{rest:.*}", handler.Proxy)
