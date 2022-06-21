@@ -39,7 +39,6 @@ func (s *TestSuite) SetupSuite() {
 	s.testUrl3 = "https://www.amazon.com/"
 
 	//clean redis TODO: setup test redis server
-	s.repo.cache.FlushAll(context.Background())
 
 }
 
