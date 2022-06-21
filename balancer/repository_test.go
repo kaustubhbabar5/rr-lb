@@ -53,7 +53,7 @@ func (s *TestSuite) BeforeTest(suiteName, testName string) {
 
 // The TearDownTest method will be run after every test in the suite.
 func (s *TestSuite) TearDownTest() {
-	s.repo.cache.FlushAll(context.Background())
+	s.repo.cache.Del(context.Background(), constants.HEALTHY_SERVERS, constants.UNHEALTHY_SERVERS)
 }
 
 func (s *TestSuite) TestGetServer() {

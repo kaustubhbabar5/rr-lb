@@ -35,8 +35,6 @@ func (s *TestSuite) SetupSuite() {
 	s.testUrl = "https://www.google.com/"
 
 	//clean redis TODO: setup test redis server
-	s.repo.cache.FlushAll(context.Background())
-
 }
 
 func (s *TestSuite) BeforeTest(suiteName, testName string) {
@@ -50,7 +48,7 @@ func (s *TestSuite) BeforeTest(suiteName, testName string) {
 }
 
 func (s *TestSuite) TearDownTest() {
-	s.repo.cache.FlushAll(context.Background())
+	s.repo.cache.Del(context.Background(), constants.HEALTHY_SERVERS, constants.UNHEALTHY_SERVERS)
 }
 
 func (s *TestSuite) TestMarkReplicaUnhealthy() {
