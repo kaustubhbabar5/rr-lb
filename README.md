@@ -47,7 +47,7 @@ Content-Type: application/json
 Body
 
     {
-        "endpoint": "https://www.amazon.com/"
+        "endpoint": "https://0.0.0.0:8081/"
     }
 
 Response
