@@ -38,7 +38,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.s.AddServer(request.Url)
+	err = h.s.AddServer(request.Endpoint)
 	if err != nil {
 		chttp.JSON(w, http.StatusInternalServerError, map[string]any{"error": []string{err.Error()}})
 		return

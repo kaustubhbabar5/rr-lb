@@ -1,6 +1,9 @@
 package main
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/kaustubhbabar5/rr-lb/adapters/cache"
 	"github.com/kaustubhbabar5/rr-lb/checker"
 	"github.com/kaustubhbabar5/rr-lb/server"
@@ -16,7 +19,12 @@ func main() {
 		panic(err)
 	}
 
-	checkerClient := checker.New(cache)
+	httpClient := &http.Client{
+		Timeout: 4 * time.Second,
+	}
+
+	checkerClient := checker.New(cache, httpClient)
+	//TODO start health checkers on servers that stored in redis on startup
 
 	server, err := server.New(cache, checkerClient)
 	if err != nil {

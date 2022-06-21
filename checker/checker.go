@@ -11,16 +11,24 @@ import (
 )
 
 type Client struct {
-	wg   sync.WaitGroup
-	repo IRepository
+	wg         sync.WaitGroup
+	repo       IRepository
+	httpClient *http.Client
 }
 
-func New(cache *redis.Client) *Client {
+type server struct {
+	url            string
+	healthy        bool
+	successCounter int
+}
+
+func New(cache *redis.Client, httpClient *http.Client) *Client {
 	repo := NewRepository(cache)
 	var wg sync.WaitGroup
 	return &Client{
-		wg:   wg,
-		repo: repo,
+		wg:         wg,
+		repo:       repo,
+		httpClient: httpClient,
 	}
 }
 
@@ -31,51 +39,69 @@ func (c *Client) StartNewHealthCheck(ctx context.Context, url string, period, su
 
 func (c *Client) Check(ctx context.Context, url string, period, successThreshold int) {
 	defer c.wg.Done()
-
+	server := server{
+		url:            url,
+		healthy:        false,
+		successCounter: 0,
+	}
 	ticker := time.NewTicker(time.Second * time.Duration(period))
 	successCounter := 0
-	healthy := true
 	for {
 		select {
 		case <-ctx.Done():
 			log.Info("gracefully exiting health checker for: ", url)
 			return
+
 		case <-ticker.C:
-
-			_, err := http.Get(url)
-			// _, err := net.DialTimeout("tcp", url+":http", 5)
-			if err != nil {
-				log.Warning("health check failed for: ", err.Error())
-				if !healthy {
+			ok := c.Ping(server.url)
+			if !ok {
+				log.Warning("health check failed for: ", server.url)
+				if !server.healthy {
 					continue
 				}
-				err = c.repo.MarkReplicaUnhealthy(url)
+
+				err := c.repo.MarkReplicaUnhealthy(server.url)
 				if err != nil {
-					log.Debug("failed to mark server as unhealthy for: ", url)
+					log.Error("failed to mark server as unhealthy for: ", server.url)
 					continue
 				}
-				healthy = false
-				log.Debug("marked server as unhealthy for: ", url)
 
+				server.healthy = false
+				log.Info("marked server as unhealthy for: ", server.url)
 				successCounter = 0
 				continue
 			}
-			log.Debug("health check successful for: ", url)
+			log.Debug("health check successful for: ", server.url)
 			if successCounter < 4 {
 				successCounter++
 			}
+
 			if successCounter == 3 {
-				err = c.repo.MarkReplicaHealthy(url)
+				err := c.repo.MarkReplicaHealthy(server.url)
 				if err != nil {
 					log.Error("failed to mark server as healthy for: ", url)
 					continue
 				}
-				healthy = true
-				log.Info("marked server as healthy for: ", url)
 
+				server.healthy = true
+				log.Info("marked server as healthy for: ", url)
 			}
 		}
 	}
+
+}
+
+func (c *Client) Ping(url string) bool {
+	res, err := c.httpClient.Get(url)
+	if err != nil {
+		log.Debug("failed to ping: ", url, ",err:", err.Error())
+		return false
+	}
+	if res.StatusCode != 200 {
+		log.Debug("failed to ping: ", url, ",statusCode:", res.StatusCode)
+		return false
+	}
+	return true
 
 }
 
